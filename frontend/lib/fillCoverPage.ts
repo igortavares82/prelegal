@@ -89,12 +89,12 @@ export function fillCoverPage(template: string, data: NdaFormData): string {
   const signatureTableFilled = [
     "|| PARTY 1 | PARTY 2 |",
     "|:--- | :----: | :----: |",
-    `| Signature | ${cell(data.party1.signature)} | ${cell(data.party2.signature)} |`,
-    `| Print Name | ${cell(data.party1.printName)} | ${cell(data.party2.printName)} |`,
-    `| Title | ${cell(data.party1.title)} | ${cell(data.party2.title)} |`,
-    `| Company | ${cell(data.party1.company)} | ${cell(data.party2.company)} |`,
-    `| Notice Address | ${cell(data.party1.noticeAddress)} | ${cell(data.party2.noticeAddress)} |`,
-    `| Date | ${cell(formatOptionalDate(data.party1.date))} | ${cell(formatOptionalDate(data.party2.date))} |`,
+    `| Signature | ${cleanText(data.party1.signature)} | ${cleanText(data.party2.signature)} |`,
+    `| Print Name | ${cleanText(data.party1.printName)} | ${cleanText(data.party2.printName)} |`,
+    `| Title | ${cleanText(data.party1.title)} | ${cleanText(data.party2.title)} |`,
+    `| Company | ${cleanText(data.party1.company)} | ${cleanText(data.party2.company)} |`,
+    `| Notice Address | ${cleanText(data.party1.noticeAddress)} | ${cleanText(data.party2.noticeAddress)} |`,
+    `| Date | ${cleanText(formatOptionalDate(data.party1.date))} | ${cleanText(formatOptionalDate(data.party2.date))} |`,
   ].join("\n");
 
   result = replaceAnchor(result, signatureTableAnchor, "Signature table", signatureTableFilled);
@@ -153,13 +153,20 @@ function replaceAnchor(
   return template.replace(anchor, replacement ?? anchor);
 }
 
-/** Escapes markdown table-breaking characters and collapses newlines. */
-function cell(value: string): string {
-  return cleanText(value).replace(/\|/g, "\\|");
-}
+// Any ASCII punctuation character may be backslash-escaped in CommonMark
+// without changing how it renders (escaping a character that wasn't going
+// to be interpreted as markup is a harmless no-op). Escaping the full set
+// unconditionally means user-entered text can never be misread as markdown
+// or raw HTML syntax (e.g. an address like "Suite <B>, 123 Main St" would
+// otherwise parse as an HTML tag and silently vanish from the rendered
+// document) and, for table cells, can't break the `|`-delimited structure.
+const MARKDOWN_ESCAPABLE = /[!"#$%&'()*+,\-./:;<=>?@[\]\\^_`{|}~]/g;
 
 function cleanText(value: string): string {
-  return value.trim().replace(/\r?\n/g, " ");
+  return value
+    .trim()
+    .replace(/\r?\n/g, " ")
+    .replace(MARKDOWN_ESCAPABLE, "\\$&");
 }
 
 /** Returns cleaned text, or `undefined` if the input is empty/whitespace-only. */

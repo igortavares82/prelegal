@@ -13,7 +13,7 @@ export default async function Home() {
         <p className="max-w-2xl text-sm text-zinc-600 dark:text-zinc-400">
           Fill in the details below to generate a Common Paper Mutual
           Non-Disclosure Agreement. The preview updates as you type, and you
-          can download the completed document as markdown.
+          can download the completed document as a PDF.
         </p>
       </header>
       <NdaEditor templates={templates} />

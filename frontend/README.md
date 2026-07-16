@@ -2,7 +2,7 @@
 
 A prototype Next.js app (PL-3) that lets a user fill in a form and generates
 a completed Common Paper Mutual Non-Disclosure Agreement, with a live
-preview and a "Download .md" button.
+preview and a "Download .pdf" button.
 
 ## How it works
 
@@ -22,10 +22,15 @@ preview and a "Download .md" button.
   `<span>` tags.
 - The whole editor (`components/NdaEditor.tsx`) is a Client Component:
   form state lives in React state, and the assembled document markdown is
-  recomputed and re-rendered (via `react-markdown` + `remark-gfm`) on every
-  keystroke.
-- Download is client-side only — a `Blob` + temporary `<a download>`, no
-  backend route.
+  recomputed and re-rendered on every keystroke.
+- The on-screen preview renders that markdown via `react-markdown` +
+  `remark-gfm`. `lib/mutualNdaPdf.tsx` renders the *same* markdown to a real
+  PDF for download: it parses it into an mdast tree (same remark/remark-gfm
+  stack) and walks that tree into `@react-pdf/renderer` primitives, so the
+  downloaded file has selectable, searchable text rather than a rasterized
+  snapshot of the page.
+- Download is client-side only — `@react-pdf/renderer`'s `pdf(...).toBlob()`
+  plus a temporary `<a download>`, no backend route.
 
 ## Getting started
 
