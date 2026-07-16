@@ -5,8 +5,8 @@ export default async function Home() {
   const templates = await loadMutualNdaTemplates();
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 px-6 py-10">
-      <header className="flex flex-col gap-2">
+    <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 px-6 py-10 lg:min-h-0 lg:overflow-hidden">
+      <header className="flex flex-col gap-2 lg:shrink-0">
         <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
           Mutual NDA Creator
         </h1>

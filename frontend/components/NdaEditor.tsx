@@ -25,9 +25,11 @@ export default function NdaEditor({ templates }: NdaEditorProps) {
   }, [templates, data]);
 
   return (
-    <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-      <NdaForm data={data} onChange={setData} />
-      <div className="lg:sticky lg:top-8 lg:self-start">
+    <div className="grid grid-cols-1 gap-8 lg:min-h-0 lg:flex-1 lg:auto-rows-fr lg:grid-cols-2">
+      <div className="lg:min-h-0 lg:overflow-y-auto">
+        <NdaForm data={data} onChange={setData} />
+      </div>
+      <div className="lg:min-h-0 lg:overflow-y-auto">
         <NdaPreview document={document} />
       </div>
     </div>
