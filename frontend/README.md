@@ -41,6 +41,40 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
+## Testing
+
+Three layers of automated coverage, plus a manual checklist for what they
+can't verify:
+
+```bash
+npm test          # unit + component tests (Vitest + React Testing Library)
+npm run test:watch # same, in watch mode
+npm run test:e2e  # end-to-end (Playwright; auto-starts the dev server)
+```
+
+- **Unit tests** (`lib/*.test.ts(x)`) cover the template-filling logic
+  (`fillCoverPage.ts` — field substitution, checkbox toggling, the
+  markdown-escaping data-loss fix, template-drift protection), document
+  assembly (`buildDocument.ts`), and PDF generation (`mutualNdaPdf.tsx` —
+  rendered server-side in Node via `@react-pdf/renderer` and verified with
+  `pdf-parse`, no browser needed). These run against the real files in
+  `../templates/`, not hand-written fixtures, so they double as a check
+  that this code still matches the actual template content.
+- **Component tests** (`components/*.test.tsx`) cover `NdaForm` (field
+  interactions, radio/disabled-state logic, an explicit regression test for
+  a fixed accessibility bug), `NdaPreview` (loading/error states around PDF
+  generation, with `@react-pdf/renderer` mocked), and `NdaEditor`
+  (integration: typing in the form updates the live preview).
+- **E2E tests** (`e2e/*.spec.ts`) drive the real running app in Chromium:
+  filling out the whole form, downloading and parsing the actual PDF, and
+  verifying the viewport-bound scroll layout (desktop panels scroll
+  independently and the page itself doesn't; mobile stacks and scrolls
+  normally).
+- **Manual testing**: see [`MANUAL_TESTING.md`](./MANUAL_TESTING.md) for
+  visual/PDF-appearance checks, cross-browser coverage (E2E only runs
+  Chromium), accessibility with a real screen reader, and a known gap
+  (non-Latin text isn't supported by the PDF's default font).
+
 ## Known limitation
 
 This app reads `../templates/*.md` (outside its own project root) via
