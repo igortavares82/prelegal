@@ -1,5 +1,6 @@
 import { PDFParse } from "pdf-parse";
 import { expect, test } from "@playwright/test";
+import { logIn } from "./helpers";
 
 async function fillForm(page: import("@playwright/test").Page) {
   await page.fill("#purpose", "Evaluating a potential software integration partnership.");
@@ -28,6 +29,7 @@ async function fillForm(page: import("@playwright/test").Page) {
 test.describe("Mutual NDA Creator", () => {
   test("live preview reflects every field as the user fills the form", async ({ page }) => {
     await page.goto("/");
+    await logIn(page);
     await fillForm(page);
 
     const preview = page.locator(".prose");
@@ -58,6 +60,7 @@ test.describe("Mutual NDA Creator", () => {
     page,
   }) => {
     await page.goto("/");
+    await logIn(page);
     await fillForm(page);
 
     const [download] = await Promise.all([
@@ -97,6 +100,7 @@ test.describe("Mutual NDA Creator", () => {
 
   test("toggling MNDA Term disables/enables the year count input", async ({ page }) => {
     await page.goto("/");
+    await logIn(page);
     const fieldset = page.locator('fieldset:has-text("MNDA Term")');
     const yearsInput = fieldset.locator('input[type="number"]');
     const continuesRadio = fieldset.getByText(

@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { logIn } from "./helpers";
 
 test.describe("Responsive scroll layout", () => {
   test.describe("desktop (lg+)", () => {
@@ -8,6 +9,7 @@ test.describe("Responsive scroll layout", () => {
       page,
     }) => {
       await page.goto("/");
+      await logIn(page);
 
       const docScroll = await page.evaluate(() => ({
         scrollHeight: document.documentElement.scrollHeight,
@@ -38,6 +40,7 @@ test.describe("Responsive scroll layout", () => {
 
     test("scrolling the form panel does not move the preview panel", async ({ page }) => {
       await page.goto("/");
+      await logIn(page);
 
       const before = await page.evaluate(() => {
         const h1 = [...document.querySelectorAll("h1")].find(
@@ -79,6 +82,7 @@ test.describe("Responsive scroll layout", () => {
 
     test("the whole page scrolls naturally (single stacked column)", async ({ page }) => {
       await page.goto("/");
+      await logIn(page);
 
       const docScroll = await page.evaluate(() => ({
         scrollHeight: document.documentElement.scrollHeight,

@@ -1,0 +1,20 @@
+[project]
+name = "prelegal-backend"
+version = "0.1.0"
+description = "FastAPI backend for Prelegal"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.139.2",
+    "pydantic[email]>=2.13.4",
+    "uvicorn[standard]>=0.51.0",
+]
+
+[dependency-groups]
+dev = [
+    "httpx2>=2.9.0",
+    "pytest>=9.1.1",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
