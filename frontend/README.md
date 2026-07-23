@@ -4,6 +4,14 @@ A prototype Next.js app (PL-3) that lets a user fill in a form and generates
 a completed Common Paper Mutual Non-Disclosure Agreement, with a live
 preview and a "Download .pdf" button.
 
+Built as a static export (`output: "export"` in `next.config.ts`) and served
+by the FastAPI backend in the Docker container — see the root
+[`Dockerfile`](../Dockerfile) and [`backend/README.md`](../backend/README.md).
+A placeholder login screen (`components/LoginScreen.tsx`,
+`components/AuthGate.tsx`) sits in front of it; it accepts any email/password
+and calls the backend's `/api/auth/login` stub (PL-4) — there's no real
+authentication yet.
+
 ## How it works
 
 - The source content — `Mutual-NDA-coverpage.md` and `Mutual-NDA.md` — is

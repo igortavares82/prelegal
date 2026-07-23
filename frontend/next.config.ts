@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Built as a static site and served by the FastAPI backend in the Docker
+  // container (see the root Dockerfile) rather than run as a Node server.
+  output: "export",
   // Disambiguate the workspace root (a stray lockfile above the repo would
   // otherwise make Next.js guess incorrectly).
   turbopack: {
