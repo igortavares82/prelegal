@@ -5,8 +5,8 @@ import { logIn } from "./helpers";
 async function fillForm(page: import("@playwright/test").Page) {
   await page.fill("#purpose", "Evaluating a potential software integration partnership.");
   await page.fill("#effectiveDate", "2026-07-20");
-  await page.fill('fieldset:has-text("MNDA Term") input[type="number"]', "2");
-  await page.click('fieldset:has-text("Term of Confidentiality") >> text=In perpetuity');
+  await page.fill("#mndaTermYears", "2");
+  await page.getByRole("group", { name: "Term of Confidentiality" }).getByText("In perpetuity").click();
   await page.fill("#governingLaw", "Delaware");
   await page.fill("#jurisdiction", "courts located in New Castle, DE");
   await page.fill("#modifications", "None.");
@@ -101,7 +101,7 @@ test.describe("Mutual NDA Creator", () => {
   test("toggling MNDA Term disables/enables the year count input", async ({ page }) => {
     await page.goto("/");
     await logIn(page);
-    const fieldset = page.locator('fieldset:has-text("MNDA Term")');
+    const fieldset = page.getByRole("group", { name: "MNDA Term" });
     const yearsInput = fieldset.locator('input[type="number"]');
     const continuesRadio = fieldset.getByText(
       "Continues until terminated in accordance with the terms of the MNDA",

@@ -1,10 +1,21 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { MutualNdaTemplates } from "@/lib/loadTemplates";
+import { createEmptyFormData } from "@/lib/types";
 import NdaEditor from "./NdaEditor";
+
+const sendChatTurn = vi.fn();
+vi.mock("@/lib/chat", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/chat")>();
+  return {
+    ...actual,
+    sendChatTurn: (...args: Parameters<typeof actual.sendChatTurn>) =>
+      sendChatTurn(...args),
+  };
+});
 
 // NdaEditor wires NdaForm's state to NdaPreview's markdown prop via
 // buildMutualNdaDocument — this is the one place that integration is
@@ -87,5 +98,52 @@ describe("NdaEditor", () => {
     };
     render(<NdaEditor templates={brokenTemplates} />);
     expect(screen.getByText(/Unable to render document/)).toBeInTheDocument();
+  });
+
+  it("updates the live preview and the manual form from a chat reply", async () => {
+    sendChatTurn.mockResolvedValue({
+      reply: "Got it, what's the effective date?",
+      fields: { ...createEmptyFormData(), purpose: "Evaluating a joint venture" },
+      is_complete: false,
+    });
+    const user = userEvent.setup();
+
+    render(<NdaEditor templates={templates} />);
+    await user.type(screen.getByLabelText("Message"), "Evaluating a joint venture");
+    await user.click(screen.getByRole("button", { name: "Send" }));
+
+    await waitFor(() =>
+      expect(screen.getByLabelText("Purpose")).toHaveValue("Evaluating a joint venture"),
+    );
+    const previewSection = screen.getByRole("heading", { name: "Preview" })
+      .parentElement!.parentElement as HTMLElement;
+    expect(
+      await within(previewSection).findByText(/Evaluating a joint venture/),
+    ).toBeInTheDocument();
+  });
+
+  it("disables the manual form while a chat turn is pending, to avoid clobbering concurrent edits", async () => {
+    let resolveTurn: (value: unknown) => void = () => {};
+    sendChatTurn.mockReturnValue(
+      new Promise((resolve) => {
+        resolveTurn = resolve;
+      }),
+    );
+    const user = userEvent.setup();
+
+    render(<NdaEditor templates={templates} />);
+    expect(screen.getByLabelText("Purpose")).toBeEnabled();
+
+    await user.type(screen.getByLabelText("Message"), "Evaluating a joint venture");
+    await user.click(screen.getByRole("button", { name: "Send" }));
+
+    expect(screen.getByLabelText("Purpose")).toBeDisabled();
+
+    resolveTurn({
+      reply: "Got it.",
+      fields: createEmptyFormData(),
+      is_complete: false,
+    });
+    await waitFor(() => expect(screen.getByLabelText("Purpose")).toBeEnabled());
   });
 });

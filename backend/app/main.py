@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from .db import init_db
-from .routers import auth
+from .routers import auth, chat
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent
 DEFAULT_DB_PATH = BACKEND_DIR / "data" / "app.db"
@@ -39,6 +39,7 @@ def create_app(db_path: Path | None = None, static_dir: Path | None = None) -> F
     )
 
     app.include_router(auth.router)
+    app.include_router(chat.router)
 
     @app.get("/api/health")
     def health() -> dict[str, str]:

@@ -5,6 +5,7 @@ import type { NdaFormData, PartyDetails } from "@/lib/types";
 interface NdaFormProps {
   data: NdaFormData;
   onChange: (data: NdaFormData) => void;
+  disabled?: boolean;
 }
 
 const inputClass =
@@ -15,7 +16,7 @@ const sectionClass =
   "flex flex-col gap-4 rounded-lg border border-zinc-200 p-4 dark:border-zinc-800";
 const legendClass = "text-base font-semibold text-zinc-900 dark:text-zinc-50";
 
-export default function NdaForm({ data, onChange }: NdaFormProps) {
+export default function NdaForm({ data, onChange, disabled = false }: NdaFormProps) {
   function update<K extends keyof NdaFormData>(key: K, value: NdaFormData[K]) {
     onChange({ ...data, [key]: value });
   }
@@ -30,6 +31,10 @@ export default function NdaForm({ data, onChange }: NdaFormProps) {
 
   return (
     <form className="flex flex-col gap-6" onSubmit={(e) => e.preventDefault()}>
+      {/* A native <fieldset disabled> disables every descendant form control
+          in one shot; `contents` keeps it out of the box/layout tree so it
+          doesn't add its own border/padding around the existing sections. */}
+      <fieldset disabled={disabled} className="contents">
       <div className={sectionClass}>
         <h2 className={legendClass}>Agreement details</h2>
 
@@ -185,6 +190,7 @@ export default function NdaForm({ data, onChange }: NdaFormProps) {
         party={data.party2}
         onChange={(field, value) => updateParty("party2", field, value)}
       />
+      </fieldset>
     </form>
   );
 }
