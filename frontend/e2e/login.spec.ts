@@ -9,7 +9,7 @@ test.describe("Login", () => {
       page.getByRole("heading", { name: "Log in to Prelegal" }),
     ).toBeVisible();
     await expect(
-      page.getByRole("heading", { name: "Mutual NDA Creator" }),
+      page.getByRole("heading", { name: "Legal Document Creator" }),
     ).not.toBeVisible();
 
     await page.fill("#email", "playwright@example.com");
@@ -17,7 +17,7 @@ test.describe("Login", () => {
     await page.click('button:has-text("Log in")');
 
     await expect(
-      page.getByRole("heading", { name: "Mutual NDA Creator" }),
+      page.getByRole("heading", { name: "Legal Document Creator" }),
     ).toBeVisible();
     await expect(page.getByText("playwright@example.com")).toBeVisible();
   });
@@ -28,7 +28,7 @@ test.describe("Login", () => {
     await page.fill("#password", "anything");
     await page.click('button:has-text("Log in")');
     await expect(
-      page.getByRole("heading", { name: "Mutual NDA Creator" }),
+      page.getByRole("heading", { name: "Legal Document Creator" }),
     ).toBeVisible();
 
     await page.click('button:has-text("Log out")');
@@ -43,12 +43,12 @@ test.describe("Login", () => {
     await page.fill("#password", "anything");
     await page.click('button:has-text("Log in")');
     await expect(
-      page.getByRole("heading", { name: "Mutual NDA Creator" }),
+      page.getByRole("heading", { name: "Legal Document Creator" }),
     ).toBeVisible();
 
     await page.reload();
     await expect(
-      page.getByRole("heading", { name: "Mutual NDA Creator" }),
+      page.getByRole("heading", { name: "Legal Document Creator" }),
     ).toBeVisible();
   });
 });

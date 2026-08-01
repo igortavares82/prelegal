@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { logIn } from "./helpers";
+import { logInAndOpenMutualNda } from "./helpers";
 
 test.describe("Mutual NDA AI chat", () => {
   test("a chat reply updates the live preview and the manual form", async ({ page }) => {
@@ -48,7 +48,7 @@ test.describe("Mutual NDA AI chat", () => {
     });
 
     await page.goto("/");
-    await logIn(page);
+    await logInAndOpenMutualNda(page);
 
     await page.fill(
       "#chat-input",
@@ -73,7 +73,7 @@ test.describe("Mutual NDA AI chat", () => {
     });
 
     await page.goto("/");
-    await logIn(page);
+    await logInAndOpenMutualNda(page);
 
     await page.fill("#chat-input", "Hi");
     await page.click('button:has-text("Send")');
