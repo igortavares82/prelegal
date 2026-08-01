@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { logIn } from "./helpers";
+import { logInAndOpenMutualNda } from "./helpers";
 
 test.describe("Responsive scroll layout", () => {
   test.describe("desktop (lg+)", () => {
@@ -9,7 +9,7 @@ test.describe("Responsive scroll layout", () => {
       page,
     }) => {
       await page.goto("/");
-      await logIn(page);
+      await logInAndOpenMutualNda(page);
 
       // documentElement.scrollHeight can slightly exceed clientHeight here due
       // to a Chromium quirk in how it computes the propagated body->viewport
@@ -24,7 +24,7 @@ test.describe("Responsive scroll layout", () => {
 
       const panels = await page.evaluate(() => {
         const h1 = [...document.querySelectorAll("h1")].find(
-          (h) => h.textContent === "Mutual NDA Creator",
+          (h) => h.textContent === "Legal Document Creator",
         )!;
         const grid = h1.closest("header")!.nextElementSibling as HTMLElement;
         return [...grid.children].map((el) => ({
@@ -45,11 +45,11 @@ test.describe("Responsive scroll layout", () => {
 
     test("scrolling the form panel does not move the preview panel", async ({ page }) => {
       await page.goto("/");
-      await logIn(page);
+      await logInAndOpenMutualNda(page);
 
       const before = await page.evaluate(() => {
         const h1 = [...document.querySelectorAll("h1")].find(
-          (h) => h.textContent === "Mutual NDA Creator",
+          (h) => h.textContent === "Legal Document Creator",
         )!;
         const grid = h1.closest("header")!.nextElementSibling as HTMLElement;
         return {
@@ -61,7 +61,7 @@ test.describe("Responsive scroll layout", () => {
 
       await page.evaluate(() => {
         const h1 = [...document.querySelectorAll("h1")].find(
-          (h) => h.textContent === "Mutual NDA Creator",
+          (h) => h.textContent === "Legal Document Creator",
         )!;
         const grid = h1.closest("header")!.nextElementSibling as HTMLElement;
         (grid.children[0] as HTMLElement).scrollTop = 400;
@@ -69,7 +69,7 @@ test.describe("Responsive scroll layout", () => {
 
       const after = await page.evaluate(() => {
         const h1 = [...document.querySelectorAll("h1")].find(
-          (h) => h.textContent === "Mutual NDA Creator",
+          (h) => h.textContent === "Legal Document Creator",
         )!;
         const grid = h1.closest("header")!.nextElementSibling as HTMLElement;
         return {
@@ -87,7 +87,7 @@ test.describe("Responsive scroll layout", () => {
 
     test("the whole page scrolls naturally (single stacked column)", async ({ page }) => {
       await page.goto("/");
-      await logIn(page);
+      await logInAndOpenMutualNda(page);
 
       const docScroll = await page.evaluate(() => ({
         scrollHeight: document.documentElement.scrollHeight,

@@ -46,7 +46,9 @@ state — start from it, don't ignore it.
 mndaTermType/confidentialityTermType (default "expires") and \
 mndaTermYears/confidentialityTermYears (default "1"), which already have \
 sensible defaults.
-- Ask a natural next question in `reply` for whatever's still missing.
+- Always end `reply` with a natural next question for whatever's still \
+missing — never end a turn with only a statement and no question when \
+there's more to collect.
 - Set is_complete to true only once every field above is filled in and you've \
 asked the user to confirm the details look right; otherwise false.
 """

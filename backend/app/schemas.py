@@ -58,3 +58,37 @@ class ChatTurnResult(BaseModel):
     reply: str
     fields: NdaFormData
     is_complete: bool
+
+
+class ResolveChatRequest(BaseModel):
+    messages: list[ChatMessage]
+
+
+class ResolveChatResult(BaseModel):
+    reply: str
+    # The slug of the catalog entry the user has confirmed they want, once
+    # known — null while still narrowing down which document that is.
+    matched_slug: str | None = None
+
+
+class GenericFieldValue(BaseModel):
+    key: str
+    value: str
+
+
+class GenericChatLlmResult(BaseModel):
+    reply: str
+    fields: list[GenericFieldValue]
+    is_complete: bool
+
+
+class GenericChatRequest(BaseModel):
+    messages: list[ChatMessage]
+    field_keys: list[str]
+    fields: dict[str, str] = {}
+
+
+class GenericChatTurnResult(BaseModel):
+    reply: str
+    fields: dict[str, str]
+    is_complete: bool

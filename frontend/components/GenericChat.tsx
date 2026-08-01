@@ -1,35 +1,42 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { ChatError, sendChatTurn, type ChatMessage } from "@/lib/chat";
-import type { NdaFormData } from "@/lib/types";
+import { ChatError, type ChatMessage } from "@/lib/chat";
+import { sendGenericChatTurn } from "@/lib/genericChat";
 
-interface NdaChatProps {
-  fields: NdaFormData;
-  onFieldsChange: (fields: NdaFormData) => void;
+interface GenericChatProps {
+  documentSlug: string;
+  documentName: string;
+  fieldKeys: string[];
+  fields: Record<string, string>;
+  onFieldsChange: (fields: Record<string, string>) => void;
   onPendingChange?: (pending: boolean) => void;
 }
-
-const INITIAL_MESSAGE: ChatMessage = {
-  role: "assistant",
-  content:
-    "Hi! I'll help you put together your Mutual NDA. To start, what's the purpose of sharing confidential information between the two parties?",
-};
 
 const bubbleClass =
   "max-w-[85%] rounded-lg px-3 py-2 text-sm whitespace-pre-wrap";
 const inputClass =
   "flex-1 rounded-md border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-[#209dd7] focus:outline-none focus:ring-1 focus:ring-[#209dd7] dark:border-zinc-700 dark:bg-zinc-900";
 
-export default function NdaChat({ fields, onFieldsChange, onPendingChange }: NdaChatProps) {
-  const [messages, setMessages] = useState<ChatMessage[]>([INITIAL_MESSAGE]);
+export default function GenericChat({
+  documentSlug,
+  documentName,
+  fieldKeys,
+  fields,
+  onFieldsChange,
+  onPendingChange,
+}: GenericChatProps) {
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    {
+      role: "assistant",
+      content: `Hi! I'll help you put together your ${documentName}. Let's get started — what would you like to tell me first?`,
+    },
+  ]);
   const [input, setInput] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Once a turn resolves (success or error) and the input re-enables, return
-  // focus to it so the user can keep answering without an extra click.
   useEffect(() => {
     if (!pending) {
       inputRef.current?.focus();
@@ -45,7 +52,7 @@ export default function NdaChat({ fields, onFieldsChange, onPendingChange }: Nda
     updatePending(true);
     setError(null);
     try {
-      const result = await sendChatTurn(history, fields);
+      const result = await sendGenericChatTurn(documentSlug, fieldKeys, history, fields);
       setMessages([...history, { role: "assistant", content: result.reply }]);
       onFieldsChange(result.fields);
     } catch (err) {
@@ -116,11 +123,11 @@ export default function NdaChat({ fields, onFieldsChange, onPendingChange }: Nda
       )}
 
       <form className="flex gap-2" onSubmit={handleSubmit}>
-        <label className="sr-only" htmlFor="chat-input">
+        <label className="sr-only" htmlFor="generic-chat-input">
           Message
         </label>
         <input
-          id="chat-input"
+          id="generic-chat-input"
           ref={inputRef}
           className={inputClass}
           value={input}

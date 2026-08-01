@@ -95,6 +95,22 @@ describe("NdaChat", () => {
     expect(sendChatTurn).toHaveBeenCalledTimes(2);
   });
 
+  it("returns focus to the message input once a turn resolves", async () => {
+    sendChatTurn.mockResolvedValue({
+      reply: "Thanks!",
+      fields: createEmptyFormData(),
+      is_complete: false,
+    });
+    const u = userEvent.setup();
+
+    render(<NdaChat fields={createEmptyFormData()} onFieldsChange={vi.fn()} />);
+    const input = screen.getByLabelText("Message");
+    await u.type(input, "Hello");
+    await u.click(screen.getByRole("button", { name: "Send" }));
+
+    await waitFor(() => expect(input).toHaveFocus());
+  });
+
   it("disables the send button while a request is pending", async () => {
     let resolveTurn: (value: unknown) => void = () => {};
     sendChatTurn.mockReturnValue(
