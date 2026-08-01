@@ -1,17 +1,23 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
-import type { AuthUser } from "@/lib/auth";
+import { logout as logoutRequest, type AuthUser } from "@/lib/auth";
+import { AuthContextProvider } from "@/lib/authContext";
 import LoginScreen from "./LoginScreen";
 
-const STORAGE_KEY = "prelegal.auth.user";
+const STORAGE_KEY = "prelegal.auth.session";
+
+interface StoredSession {
+  user: AuthUser;
+  token: string;
+}
 
 interface AuthGateProps {
   children: ReactNode;
 }
 
 export default function AuthGate({ children }: AuthGateProps) {
-  const [user, setUser] = useState<AuthUser | null>(null);
+  const [session, setSession] = useState<StoredSession | null>(null);
 
   useEffect(() => {
     const stored = window.localStorage.getItem(STORAGE_KEY);
@@ -22,39 +28,46 @@ export default function AuthGate({ children }: AuthGateProps) {
       // swaps in the persisted session right after — a deliberate one-time
       // extra render, not a synchronization loop.
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setUser(JSON.parse(stored));
+      setSession(JSON.parse(stored));
     } catch {
       window.localStorage.removeItem(STORAGE_KEY);
     }
   }, []);
 
-  function handleLogin(loggedInUser: AuthUser) {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(loggedInUser));
-    setUser(loggedInUser);
+  function handleLogin(loggedIn: StoredSession) {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(loggedIn));
+    setSession(loggedIn);
   }
 
   function handleLogout() {
+    if (session) {
+      void logoutRequest(session.token);
+    }
     window.localStorage.removeItem(STORAGE_KEY);
-    setUser(null);
+    setSession(null);
   }
 
-  if (!user) {
+  if (!session) {
     return <LoginScreen onLogin={handleLogin} />;
   }
 
   return (
     <div className="flex flex-1 flex-col lg:min-h-0">
-      <div className="flex shrink-0 items-center justify-end gap-3 px-6 pt-4 text-sm text-[#888888]">
-        <span>{user.email}</span>
+      <div className="flex shrink-0 items-center justify-end gap-3 px-6 pt-4 text-sm text-gray-text">
+        <span>{session.user.email}</span>
         <button
           type="button"
           onClick={handleLogout}
-          className="font-medium text-[#209dd7] hover:underline"
+          className="font-medium text-brand-blue hover:underline"
         >
           Log out
         </button>
       </div>
-      {children}
+      <AuthContextProvider
+        value={{ user: session.user, token: session.token, logout: handleLogout }}
+      >
+        {children}
+      </AuthContextProvider>
     </div>
   );
 }

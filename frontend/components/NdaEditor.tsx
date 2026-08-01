@@ -3,17 +3,18 @@
 import { useMemo, useState } from "react";
 import { buildMutualNdaDocument } from "@/lib/buildDocument";
 import type { MutualNdaTemplates } from "@/lib/loadTemplates";
-import { createEmptyFormData } from "@/lib/types";
+import { createEmptyFormData, type NdaFormData } from "@/lib/types";
 import NdaChat from "./NdaChat";
 import NdaForm from "./NdaForm";
 import NdaPreview from "./NdaPreview";
 
 interface NdaEditorProps {
   templates: MutualNdaTemplates;
+  initialData?: NdaFormData;
 }
 
-export default function NdaEditor({ templates }: NdaEditorProps) {
-  const [data, setData] = useState(createEmptyFormData);
+export default function NdaEditor({ templates, initialData }: NdaEditorProps) {
+  const [data, setData] = useState(() => initialData ?? createEmptyFormData());
   const [chatPending, setChatPending] = useState(false);
 
   const document = useMemo(() => {
@@ -47,7 +48,7 @@ export default function NdaEditor({ templates }: NdaEditorProps) {
         </details>
       </div>
       <div className="lg:min-h-0 lg:overflow-y-auto">
-        <NdaPreview document={document} />
+        <NdaPreview document={document} data={data} />
       </div>
     </div>
   );

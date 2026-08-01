@@ -8,7 +8,7 @@ The available documents are covered in the catalog.json file in the project root
 
 @catalog.json
 
-The current implementation covers all 11 document types via a chat-first flow that figures out which document the user wants before filling it in (with a manual form still available as a fallback/edit panel), with a placeholder login screen (no real authentication) and no document persistence. See "Implementation status" at the end of this file for details.
+The current implementation covers all 11 document types via a chat-first flow that figures out which document the user wants before filling it in (with a manual form still available as a fallback/edit panel), with real password-based authentication and per-user document persistence (still backed by the ephemeral SQLite DB — see below). See "Implementation status" at the end of this file for details.
 
 ## Development process
 
@@ -128,6 +128,41 @@ Backend available at http://localhost:8000
     (`NdaChat.tsx`/`GenericChat.tsx`/`ResolveChat.tsx`), and the AI is now
     explicitly instructed to always ask a follow-up question when
     information is still missing rather than ending a turn on a statement.
+- **PL-7** — Real authentication, document persistence, and polish:
+  - `backend/app/security.py`: password hashing (PBKDF2-HMAC-SHA256 via
+    stdlib `hashlib`/`secrets`, no new dependency) and session-token
+    generation. `backend/app/db.py` gained a `password_hash` column on
+    `users`, plus new `sessions` (token → user_id) and `documents`
+    (user_id, document_slug, title, data JSON) tables — still dropped and
+    recreated on every startup, per the existing ephemeral-DB convention.
+  - `backend/app/routers/auth.py` was rewritten: `/api/auth/signup` now
+    hashes the password and rejects a duplicate email (409); `/api/auth/login`
+    verifies the password and rejects a mismatch (401) instead of accepting
+    anything; a new `/api/auth/logout` deletes the session row.
+    `backend/app/deps.py`'s `get_current_user` (Bearer-token) dependency
+    gates the new documents endpoints.
+  - `POST /api/documents` / `GET /api/documents` / `GET /api/documents/{id}`
+    (`backend/app/routers/documents.py`) let a signed-in user save a
+    document (one row per explicit Save — no update/versioning yet) and
+    list/reopen only their own documents.
+  - Frontend: `lib/authContext.tsx` (the app's first use of React context)
+    carries the session token down to deeply-nested components that need it
+    to call the documents API. `AuthGate.tsx` now persists `{user, token}`
+    and calls the new logout endpoint. `components/Workspace.tsx` adds a
+    "+ New document" / "My documents" toggle to the header;
+    `components/MyDocuments.tsx` lists and reopens saved documents
+    (pre-filling `NdaEditor`/`GenericDocumentEditor` via new
+    `initialData`/`initialValues` props). `components/DocumentPreview.tsx`
+    is a new shared component — replacing near-duplicate logic previously
+    in `NdaPreview.tsx`/`GenericPreview.tsx` — that adds a "Save" button
+    (with an editable document title) and a legal disclaimer next to every
+    preview.
+  - `frontend/app/globals.css` registers the Color Scheme above as real
+    Tailwind v4 `@theme` tokens (`brand-blue`, `brand-purple`, `navy`,
+    `gray-text`, `accent-yellow`), replacing hardcoded hex literals that
+    were scattered across `LoginScreen.tsx`, `NdaChat.tsx`,
+    `ResolveChat.tsx`, `GenericChat.tsx`.
 
-Not yet built: real authentication and document persistence beyond the
-`users` table.
+Not yet built: password reset/email verification, session expiry, and any
+document persistence beyond the current ephemeral (reset-on-restart) SQLite
+DB.

@@ -1,10 +1,12 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { render, screen, waitFor } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { GenericDocument } from "@/lib/loadGenericTemplates";
 import type { MutualNdaTemplates } from "@/lib/loadTemplates";
+import { createEmptyFormData } from "@/lib/types";
+import { renderWithAuth as render } from "@/test/authTestUtils";
 import DocumentChat from "./DocumentChat";
 
 const sendResolveChatTurn = vi.fn();
@@ -85,5 +87,33 @@ describe("DocumentChat", () => {
       await screen.findByText("Can you tell me more about what you need?"),
     ).toBeInTheDocument();
     expect(screen.getByLabelText("Message")).toBeInTheDocument();
+  });
+
+  it("skips the resolver and opens straight into the Mutual NDA editor, pre-filled, when reopening a saved document", () => {
+    render(
+      <DocumentChat
+        mutualNdaTemplates={mutualNdaTemplates}
+        genericDocuments={genericDocuments}
+        initialSlug="mutual-nda"
+        initialData={{ ...createEmptyFormData(), purpose: "Evaluating a joint venture" }}
+      />,
+    );
+
+    expect(screen.getByRole("heading", { name: "Agreement details" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Purpose")).toHaveValue("Evaluating a joint venture");
+  });
+
+  it("skips the resolver and opens straight into the generic document editor, pre-filled, when reopening a saved document", () => {
+    render(
+      <DocumentChat
+        mutualNdaTemplates={mutualNdaTemplates}
+        genericDocuments={genericDocuments}
+        initialSlug="csa"
+        initialData={{ Customer: "Acme Corp" }}
+      />,
+    );
+
+    expect(screen.getByText(/Cloud Service Agreement/)).toBeInTheDocument();
+    expect(screen.getByLabelText("Customer")).toHaveValue("Acme Corp");
   });
 });

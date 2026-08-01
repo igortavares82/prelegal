@@ -1,14 +1,18 @@
 import type { pdf as PdfFn } from "@react-pdf/renderer";
-import { render, screen, waitFor } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { createEmptyFormData } from "@/lib/types";
+import { renderWithAuth } from "@/test/authTestUtils";
 import NdaPreview from "./NdaPreview";
 
-// NdaPreview's job is to orchestrate PDF generation (loading state, error
-// handling, triggering the download) — the PDF's actual byte-level content
-// is already covered by lib/mutualNdaPdf.test.tsx. Mocking @react-pdf/renderer
-// here keeps this test focused on NdaPreview's own logic and avoids running
-// the full PDF pipeline (which needs Node, not jsdom) inside a component test.
+// NdaPreview's job is to wire mutual-NDA-specific data (markdown, PDF
+// document, filename, slug) into the shared DocumentPreview — the PDF's
+// actual byte-level content is already covered by lib/mutualNdaPdf.test.tsx,
+// and DocumentPreview's own Save/title/disclaimer behavior is covered by
+// DocumentPreview.test.tsx. Mocking @react-pdf/renderer here keeps this test
+// focused on the orchestration NdaPreview + DocumentPreview do together,
+// without running the full PDF pipeline (which needs Node, not jsdom).
 const toBlob = vi.fn();
 // Stub every member of pdf()'s return shape (not just toBlob, which is all
 // NdaPreview actually calls) so this satisfies ReturnType<typeof pdf> for
@@ -30,6 +34,8 @@ vi.mock(import("@react-pdf/renderer"), async (importOriginal) => {
     pdf: vi.fn(() => pdfInstance),
   };
 });
+
+const data = createEmptyFormData();
 
 describe("NdaPreview", () => {
   let clickSpy: ReturnType<typeof vi.spyOn>;
@@ -59,7 +65,9 @@ describe("NdaPreview", () => {
   });
 
   it("renders the assembled markdown document", () => {
-    render(<NdaPreview document={"# Mutual NDA\n\nSome body text."} />);
+    renderWithAuth(
+      <NdaPreview document={"# Mutual NDA\n\nSome body text."} data={data} />,
+    );
     expect(screen.getByRole("heading", { name: "Mutual NDA" })).toBeInTheDocument();
     expect(screen.getByText("Some body text.")).toBeInTheDocument();
   });
@@ -73,7 +81,7 @@ describe("NdaPreview", () => {
       }),
     );
 
-    render(<NdaPreview document="# Doc" />);
+    renderWithAuth(<NdaPreview document="# Doc" data={data} />);
     const button = screen.getByRole("button", { name: "Download .pdf" });
     await user.click(button);
 
@@ -90,7 +98,7 @@ describe("NdaPreview", () => {
     const user = userEvent.setup();
     toBlob.mockResolvedValue(new Blob(["fake-pdf"], { type: "application/pdf" }));
 
-    render(<NdaPreview document="# Doc" />);
+    renderWithAuth(<NdaPreview document="# Doc" data={data} />);
     await user.click(screen.getByRole("button", { name: "Download .pdf" }));
 
     await waitFor(() => expect(clickSpy).toHaveBeenCalledTimes(1));
@@ -102,7 +110,7 @@ describe("NdaPreview", () => {
     const user = userEvent.setup();
     toBlob.mockRejectedValue(new Error("Font loading failed"));
 
-    render(<NdaPreview document="# Doc" />);
+    renderWithAuth(<NdaPreview document="# Doc" data={data} />);
     await user.click(screen.getByRole("button", { name: "Download .pdf" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent("Font loading failed");
@@ -113,7 +121,7 @@ describe("NdaPreview", () => {
     const user = userEvent.setup();
     toBlob.mockRejectedValueOnce(new Error("Font loading failed"));
 
-    render(<NdaPreview document="# Doc" />);
+    renderWithAuth(<NdaPreview document="# Doc" data={data} />);
     const button = screen.getByRole("button", { name: "Download .pdf" });
 
     await user.click(button);

@@ -1,11 +1,11 @@
-from typing import Literal
+from typing import Any, Literal
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 
 
 class AuthRequest(BaseModel):
     email: EmailStr
-    password: str
+    password: str = Field(min_length=8)
 
 
 class UserOut(BaseModel):
@@ -92,3 +92,28 @@ class GenericChatTurnResult(BaseModel):
     reply: str
     fields: dict[str, str]
     is_complete: bool
+
+
+class DocumentIn(BaseModel):
+    """A document the user has chosen to save, keyed by catalog slug.
+
+    ``data`` is either an ``NdaFormData``-shaped object (mutual-nda) or a
+    flat field-key/value map (every other document type) — opaque to the
+    backend either way, since only the frontend's fill functions know how to
+    turn it back into document text.
+    """
+
+    document_slug: str
+    title: str
+    data: dict[str, Any]
+
+
+class DocumentSummary(BaseModel):
+    id: int
+    document_slug: str
+    title: str
+    created_at: str
+
+
+class DocumentOut(DocumentSummary):
+    data: dict[str, Any]
