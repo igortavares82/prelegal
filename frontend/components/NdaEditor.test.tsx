@@ -1,10 +1,11 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import type { MutualNdaTemplates } from "@/lib/loadTemplates";
 import { createEmptyFormData } from "@/lib/types";
+import { renderWithAuth as render } from "@/test/authTestUtils";
 import NdaEditor from "./NdaEditor";
 
 const sendChatTurn = vi.fn();

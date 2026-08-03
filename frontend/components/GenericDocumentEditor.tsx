@@ -9,10 +9,14 @@ import GenericPreview from "./GenericPreview";
 
 interface GenericDocumentEditorProps {
   document: GenericDocument;
+  initialValues?: Record<string, string>;
 }
 
-export default function GenericDocumentEditor({ document }: GenericDocumentEditorProps) {
-  const [values, setValues] = useState<Record<string, string>>({});
+export default function GenericDocumentEditor({
+  document,
+  initialValues,
+}: GenericDocumentEditorProps) {
+  const [values, setValues] = useState<Record<string, string>>(() => initialValues ?? {});
   const [chatPending, setChatPending] = useState(false);
 
   const filled = useMemo(
@@ -49,7 +53,12 @@ export default function GenericDocumentEditor({ document }: GenericDocumentEdito
         </details>
       </div>
       <div className="lg:min-h-0 lg:overflow-y-auto">
-        <GenericPreview document={filled} documentName={document.name} />
+        <GenericPreview
+          document={filled}
+          documentName={document.name}
+          documentSlug={document.slug}
+          values={values}
+        />
       </div>
     </div>
   );

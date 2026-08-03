@@ -31,21 +31,21 @@ describe("LoginScreen", () => {
     expect(screen.getByRole("button", { name: "Log in" })).toBeInTheDocument();
   });
 
-  it("submits email and password to login and calls onLogin with the returned user", async () => {
+  it("submits email and password to login and calls onLogin with the returned session", async () => {
     const onLogin = vi.fn();
     login.mockResolvedValue({ user, session_token: "tok" });
     const u = userEvent.setup();
 
     render(<LoginScreen onLogin={onLogin} />);
     await u.type(screen.getByLabelText("Email"), "jane@example.com");
-    await u.type(screen.getByLabelText("Password"), "hunter2");
+    await u.type(screen.getByLabelText("Password"), "hunter22");
     await u.click(screen.getByRole("button", { name: "Log in" }));
 
     await waitFor(() =>
-      expect(login).toHaveBeenCalledWith("jane@example.com", "hunter2"),
+      expect(login).toHaveBeenCalledWith("jane@example.com", "hunter22"),
     );
     expect(signup).not.toHaveBeenCalled();
-    await waitFor(() => expect(onLogin).toHaveBeenCalledWith(user));
+    await waitFor(() => expect(onLogin).toHaveBeenCalledWith({ user, token: "tok" }));
   });
 
   it("switches to signup mode and calls signup instead of login", async () => {
@@ -60,28 +60,42 @@ describe("LoginScreen", () => {
     ).toBeInTheDocument();
 
     await u.type(screen.getByLabelText("Email"), "jane@example.com");
-    await u.type(screen.getByLabelText("Password"), "hunter2");
+    await u.type(screen.getByLabelText("Password"), "hunter22");
     await u.click(screen.getByRole("button", { name: "Sign up" }));
 
     await waitFor(() =>
-      expect(signup).toHaveBeenCalledWith("jane@example.com", "hunter2"),
+      expect(signup).toHaveBeenCalledWith("jane@example.com", "hunter22"),
     );
     expect(login).not.toHaveBeenCalled();
-    await waitFor(() => expect(onLogin).toHaveBeenCalledWith(user));
+    await waitFor(() => expect(onLogin).toHaveBeenCalledWith({ user, token: "tok" }));
   });
 
   it("shows an error and re-enables the submit button when the request fails", async () => {
-    login.mockRejectedValue(new AuthError("Unable to log in. Check your email and try again."));
+    login.mockRejectedValue(new AuthError("Invalid email or password."));
     const u = userEvent.setup();
 
     render(<LoginScreen onLogin={vi.fn()} />);
     await u.type(screen.getByLabelText("Email"), "jane@example.com");
-    await u.type(screen.getByLabelText("Password"), "hunter2");
+    await u.type(screen.getByLabelText("Password"), "hunter22");
     await u.click(screen.getByRole("button", { name: "Log in" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Unable to log in. Check your email and try again.",
+      "Invalid email or password.",
     );
     expect(screen.getByRole("button", { name: "Log in" })).toBeEnabled();
+  });
+
+  it("rejects a password shorter than 8 characters before submitting", async () => {
+    const u = userEvent.setup();
+
+    render(<LoginScreen onLogin={vi.fn()} />);
+    await u.type(screen.getByLabelText("Email"), "jane@example.com");
+    await u.type(screen.getByLabelText("Password"), "short");
+    await u.click(screen.getByRole("button", { name: "Log in" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Password must be at least 8 characters.",
+    );
+    expect(login).not.toHaveBeenCalled();
   });
 });

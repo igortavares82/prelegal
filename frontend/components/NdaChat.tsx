@@ -19,7 +19,7 @@ const INITIAL_MESSAGE: ChatMessage = {
 const bubbleClass =
   "max-w-[85%] rounded-lg px-3 py-2 text-sm whitespace-pre-wrap";
 const inputClass =
-  "flex-1 rounded-md border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-[#209dd7] focus:outline-none focus:ring-1 focus:ring-[#209dd7] dark:border-zinc-700 dark:bg-zinc-900";
+  "flex-1 rounded-md border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue dark:border-zinc-700 dark:bg-zinc-900";
 
 export default function NdaChat({ fields, onFieldsChange, onPendingChange }: NdaChatProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([INITIAL_MESSAGE]);
@@ -89,14 +89,14 @@ export default function NdaChat({ fields, onFieldsChange, onPendingChange }: Nda
             className={`${bubbleClass} ${
               message.role === "assistant"
                 ? "self-start bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-50"
-                : "self-end bg-[#209dd7] text-white"
+                : "self-end bg-brand-blue text-white"
             }`}
           >
             {message.content}
           </div>
         ))}
         {pending && (
-          <p className="text-sm text-[#888888]" aria-live="polite">
+          <p className="text-sm text-gray-text" aria-live="polite">
             Thinking…
           </p>
         )}
@@ -108,7 +108,7 @@ export default function NdaChat({ fields, onFieldsChange, onPendingChange }: Nda
           <button
             type="button"
             onClick={handleRetry}
-            className="shrink-0 text-sm font-medium text-[#209dd7] hover:underline"
+            className="shrink-0 text-sm font-medium text-brand-blue hover:underline"
           >
             Retry
           </button>
@@ -131,7 +131,7 @@ export default function NdaChat({ fields, onFieldsChange, onPendingChange }: Nda
         <button
           type="submit"
           disabled={pending || !input.trim()}
-          className="rounded-md bg-[#753991] px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-[#602d78] disabled:cursor-not-allowed disabled:opacity-60"
+          className="rounded-md bg-brand-purple px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-[#602d78] disabled:cursor-not-allowed disabled:opacity-60"
         >
           Send
         </button>

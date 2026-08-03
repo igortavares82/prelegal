@@ -9,7 +9,7 @@ from fastapi.staticfiles import StaticFiles
 
 from .catalog import load_catalog
 from .db import init_db
-from .routers import auth, chat, document_chat, resolve_chat
+from .routers import auth, chat, document_chat, documents, resolve_chat
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent
 DEFAULT_DB_PATH = BACKEND_DIR / "data" / "app.db"
@@ -52,6 +52,7 @@ def create_app(
     app.include_router(chat.router)
     app.include_router(resolve_chat.router)
     app.include_router(document_chat.router)
+    app.include_router(documents.router)
 
     @app.get("/api/health")
     def health() -> dict[str, str]:

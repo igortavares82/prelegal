@@ -5,24 +5,29 @@ import type { AuthUser } from "@/lib/auth";
 import AuthGate from "./AuthGate";
 
 const login = vi.fn();
+const logout = vi.fn();
 vi.mock("@/lib/auth", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/auth")>();
   return {
     ...actual,
     login: (...args: [string, string]) => login(...args),
+    logout: (...args: [string]) => logout(...args),
   };
 });
 
 const user: AuthUser = { id: 7, email: "jane@example.com" };
-const STORAGE_KEY = "prelegal.auth.user";
+const session = { user, token: "session-token" };
+const STORAGE_KEY = "prelegal.auth.session";
 
 describe("AuthGate", () => {
   beforeEach(() => {
     window.localStorage.clear();
+    logout.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
     login.mockReset();
+    logout.mockReset();
   });
 
   it("shows the login screen when no session is stored", () => {
@@ -38,7 +43,7 @@ describe("AuthGate", () => {
   });
 
   it("renders children directly when a session is already stored", () => {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
     render(
       <AuthGate>
         <div>Protected content</div>
@@ -61,7 +66,7 @@ describe("AuthGate", () => {
   });
 
   it("persists the session and reveals children after a successful login", async () => {
-    login.mockResolvedValue({ user, session_token: "tok" });
+    login.mockResolvedValue({ user, session_token: "session-token" });
     const u = userEvent.setup();
 
     render(
@@ -71,15 +76,15 @@ describe("AuthGate", () => {
     );
 
     await u.type(screen.getByLabelText("Email"), user.email);
-    await u.type(screen.getByLabelText("Password"), "hunter2");
+    await u.type(screen.getByLabelText("Password"), "hunter22");
     await u.click(screen.getByRole("button", { name: "Log in" }));
 
     await waitFor(() => expect(screen.getByText("Protected content")).toBeInTheDocument());
-    expect(JSON.parse(window.localStorage.getItem(STORAGE_KEY)!)).toEqual(user);
+    expect(JSON.parse(window.localStorage.getItem(STORAGE_KEY)!)).toEqual(session);
   });
 
-  it("logs out, clearing the stored session and showing the login screen again", async () => {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+  it("logs out, invalidating the server session and clearing the stored session", async () => {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
     const u = userEvent.setup();
 
     render(
@@ -89,6 +94,7 @@ describe("AuthGate", () => {
     );
     await u.click(screen.getByRole("button", { name: "Log out" }));
 
+    expect(logout).toHaveBeenCalledWith("session-token");
     expect(
       screen.getByRole("heading", { name: "Log in to Prelegal" }),
     ).toBeInTheDocument();

@@ -4,11 +4,11 @@ import { useState, type FormEvent } from "react";
 import { AuthError, login, signup, type AuthUser } from "@/lib/auth";
 
 interface LoginScreenProps {
-  onLogin: (user: AuthUser) => void;
+  onLogin: (session: { user: AuthUser; token: string }) => void;
 }
 
 const inputClass =
-  "w-full rounded-md border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-[#209dd7] focus:outline-none focus:ring-1 focus:ring-[#209dd7] dark:border-zinc-700 dark:bg-zinc-900";
+  "w-full rounded-md border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue dark:border-zinc-700 dark:bg-zinc-900";
 const labelClass = "block text-sm font-medium text-zinc-700 dark:text-zinc-300";
 
 export default function LoginScreen({ onLogin }: LoginScreenProps) {
@@ -21,10 +21,14 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setError(null);
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters.");
+      return;
+    }
     setSubmitting(true);
     try {
       const result = await (mode === "login" ? login : signup)(email, password);
-      onLogin(result.user);
+      onLogin({ user: result.user, token: result.session_token });
     } catch (err) {
       setError(
         err instanceof AuthError
@@ -39,13 +43,13 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
   return (
     <div className="flex flex-1 items-center justify-center px-6 py-10">
       <div className="w-full max-w-sm rounded-lg border border-zinc-200 p-8 shadow-sm dark:border-zinc-800">
-        <h1 className="text-2xl font-semibold text-[#032147] dark:text-zinc-50">
+        <h1 className="text-2xl font-semibold text-navy dark:text-zinc-50">
           {mode === "login" ? "Log in to Prelegal" : "Create your Prelegal account"}
         </h1>
-        <p className="mt-2 text-sm text-[#888888]">
+        <p className="mt-2 text-sm text-gray-text">
           {mode === "login"
-            ? "Enter any email and password to continue — this is a placeholder login for now."
-            : "Pick any email and password to get started."}
+            ? "Enter your email and password to continue."
+            : "Choose a password with at least 8 characters to get started."}
         </p>
 
         <form className="mt-6 flex flex-col gap-4" onSubmit={handleSubmit}>
@@ -71,8 +75,9 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
             <input
               id="password"
               type="password"
-              autoComplete="current-password"
+              autoComplete={mode === "login" ? "current-password" : "new-password"}
               required
+              minLength={8}
               className={inputClass}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -88,7 +93,7 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
           <button
             type="submit"
             disabled={submitting}
-            className="mt-2 rounded-md bg-[#753991] px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-[#602d78] disabled:cursor-not-allowed disabled:opacity-60"
+            className="mt-2 rounded-md bg-brand-purple px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-[#602d78] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {submitting ? "Please wait…" : mode === "login" ? "Log in" : "Sign up"}
           </button>
@@ -97,7 +102,7 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
         <button
           type="button"
           onClick={() => setMode(mode === "login" ? "signup" : "login")}
-          className="mt-4 text-sm font-medium text-[#209dd7] hover:underline"
+          className="mt-4 text-sm font-medium text-brand-blue hover:underline"
         >
           {mode === "login"
             ? "Need an account? Sign up"
